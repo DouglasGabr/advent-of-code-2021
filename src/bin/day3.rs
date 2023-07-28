@@ -37,8 +37,8 @@ fn part1(input: &str) -> u64 {
 
 fn part2(input: &str) -> u64 {
     let line_length = input.lines().next().unwrap().len();
-    let line_count = input.lines().count();
-    fn find_rating(lines: Vec<&str>, idx: usize, line_count: usize, most_common: bool) -> u64 {
+    let lines_vec = input.lines().collect::<Vec<_>>();
+    fn find_rating(lines: &Vec<&str>, idx: usize, line_count: usize, most_common: bool) -> u64 {
         let num_of_ones: u64 = lines
             .iter()
             .map(|line| u64::from_str_radix(line, 2).expect("binary number"))
@@ -46,7 +46,7 @@ fn part2(input: &str) -> u64 {
             .sum();
         let num_of_zeros = line_count as u64 - num_of_ones;
         let valid_lines = lines
-            .into_iter()
+            .iter()
             .filter(|line| {
                 let n = u64::from_str_radix(line, 2).expect("binary number");
                 (n >> idx) & 1
@@ -56,19 +56,17 @@ fn part2(input: &str) -> u64 {
                         (num_of_ones < num_of_zeros) as u64
                     }
             })
+            .map(|&line| line)
             .collect::<Vec<_>>();
         if valid_lines.len() == 1 {
             return u64::from_str_radix(valid_lines[0], 2).expect("binary number");
         } else {
-            let line_count = valid_lines.len();
-            return find_rating(valid_lines, idx - 1, line_count, most_common);
+            return find_rating(&valid_lines, idx - 1, valid_lines.len(), most_common);
         }
     }
 
-    let oxygen_generator_rating =
-        find_rating(input.lines().collect(), line_length - 1, line_count, true);
-    let co2_scrubber_rating =
-        find_rating(input.lines().collect(), line_length - 1, line_count, false);
+    let oxygen_generator_rating = find_rating(&lines_vec, line_length - 1, lines_vec.len(), true);
+    let co2_scrubber_rating = find_rating(&lines_vec, line_length - 1, lines_vec.len(), false);
 
     return oxygen_generator_rating * co2_scrubber_rating;
 }
